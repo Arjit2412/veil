@@ -75,6 +75,52 @@
                             "request": {
                               "set": {
                                 "Host": [
+                                  "localhost:8080"
+                                ]
+                              }
+                            }
+                          },
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8080"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [
+                {
+                  "path": [
+                    "/api/v1/users"
+                  ]
+                }
+              ],
+              "terminal": true
+            },
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "db_path": "./veil.db",
+                          "handler": "veil_handler",
+                          "subscription_key": "X-Subscription-Key"
+                        },
+                        {
+                          "handler": "reverse_proxy",
+                          "headers": {
+                            "request": {
+                              "set": {
+                                "Host": [
                                   "localhost:8083"
                                 ]
                               }
@@ -97,7 +143,53 @@
               "match": [
                 {
                   "path": [
-                    "/ordr/*"
+                    "/weather/*"
+                  ]
+                }
+              ],
+              "terminal": true
+            },
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "db_path": "./veil.db",
+                          "handler": "veil_handler",
+                          "subscription_key": "X-Subscription-Key"
+                        },
+                        {
+                          "handler": "reverse_proxy",
+                          "headers": {
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8081"
+                                ]
+                              }
+                            }
+                          },
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8081"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [
+                {
+                  "path": [
+                    "/api/v1/products/*"
                   ]
                 }
               ],

@@ -1,12 +1,20 @@
 {
-  "admin": { "listen": "0.0.0.0:2019" },
+  "admin": {
+    "listen": "0.0.0.0:2019"
+  },
   "apps": {
     "http": {
       "servers": {
         "srv0": {
-          "automatic_https": { "disable": true },
-          "listen": [":2020"],
-          "logs": { "default_logger_name": "log0" },
+          "automatic_https": {
+            "disable": true
+          },
+          "listen": [
+            ":2020"
+          ],
+          "logs": {
+            "default_logger_name": "log0"
+          },
           "routes": [
             {
               "handle": [
@@ -25,7 +33,13 @@
                   ]
                 }
               ],
-              "match": [{ "path": ["/veil/api/*"] }]
+              "match": [
+                {
+                  "path": [
+                    "/veil/api/*"
+                  ]
+                }
+              ]
             },
             {
               "handle": [
@@ -39,7 +53,9 @@
           ]
         },
         "srv1": {
-          "listen": [":2021"],
+          "listen": [
+            ":2021"
+          ],
           "routes": [
             {
               "handle": [
@@ -56,17 +72,35 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["localhost:8080"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8080"
+                                ]
+                              }
+                            }
                           },
-                          "transport": { "protocol": "http" },
-                          "upstreams": [{ "dial": "localhost:8080" }]
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8080"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/api/v1/users"] }],
+              "match": [
+                {
+                  "path": [
+                    "/api/v1/users"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -84,17 +118,35 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["localhost:8083"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8083"
+                                ]
+                              }
+                            }
                           },
-                          "transport": { "protocol": "http" },
-                          "upstreams": [{ "dial": "localhost:8083" }]
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8083"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/weather/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/weather/*"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -112,17 +164,35 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["localhost:8081"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8081"
+                                ]
+                              }
+                            }
                           },
-                          "transport": { "protocol": "http" },
-                          "upstreams": [{ "dial": "localhost:8081" }]
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8081"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/api/v1/products/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/api/v1/products/*"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -140,17 +210,35 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["localhost:8082"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8082"
+                                ]
+                              }
+                            }
                           },
-                          "transport": { "protocol": "http" },
-                          "upstreams": [{ "dial": "localhost:8082" }]
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8082"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/order/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/order/*"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -168,20 +256,38 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["httpbin.org"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "httpbin.org"
+                                ]
+                              }
+                            }
                           },
                           "transport": {
                             "protocol": "http",
-                            "tls": { "insecure_skip_verify": true }
+                            "tls": {
+                              "insecure_skip_verify": true
+                            }
                           },
-                          "upstreams": [{ "dial": "httpbin.org:443" }]
+                          "upstreams": [
+                            {
+                              "dial": "httpbin.org:443"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/bin/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/bin/*"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -199,20 +305,38 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["dummyjson.com"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "dummyjson.com"
+                                ]
+                              }
+                            }
                           },
                           "transport": {
                             "protocol": "http",
-                            "tls": { "insecure_skip_verify": true }
+                            "tls": {
+                              "insecure_skip_verify": true
+                            }
                           },
-                          "upstreams": [{ "dial": "dummyjson.com:443" }]
+                          "upstreams": [
+                            {
+                              "dial": "dummyjson.com:443"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/todos/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/todos/*"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -230,20 +354,38 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["dummyjson.com"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "dummyjson.com"
+                                ]
+                              }
+                            }
                           },
                           "transport": {
                             "protocol": "http",
-                            "tls": { "insecure_skip_verify": true }
+                            "tls": {
+                              "insecure_skip_verify": true
+                            }
                           },
-                          "upstreams": [{ "dial": "dummyjson.com:443" }]
+                          "upstreams": [
+                            {
+                              "dial": "dummyjson.com:443"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/todos"] }],
+              "match": [
+                {
+                  "path": [
+                    "/todos"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -261,20 +403,38 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["dummyjson.com"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "dummyjson.com"
+                                ]
+                              }
+                            }
                           },
                           "transport": {
                             "protocol": "http",
-                            "tls": { "insecure_skip_verify": true }
+                            "tls": {
+                              "insecure_skip_verify": true
+                            }
                           },
-                          "upstreams": [{ "dial": "dummyjson.com:443" }]
+                          "upstreams": [
+                            {
+                              "dial": "dummyjson.com:443"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/todo"] }],
+              "match": [
+                {
+                  "path": [
+                    "/todo"
+                  ]
+                }
+              ],
               "terminal": true
             },
             {
@@ -292,17 +452,35 @@
                         {
                           "handler": "reverse_proxy",
                           "headers": {
-                            "request": { "set": { "Host": ["localhost:8083"] } }
+                            "request": {
+                              "set": {
+                                "Host": [
+                                  "localhost:8083"
+                                ]
+                              }
+                            }
                           },
-                          "transport": { "protocol": "http" },
-                          "upstreams": [{ "dial": "localhost:8083" }]
+                          "transport": {
+                            "protocol": "http"
+                          },
+                          "upstreams": [
+                            {
+                              "dial": "localhost:8083"
+                            }
+                          ]
                         }
                       ]
                     }
                   ]
                 }
               ],
-              "match": [{ "path": ["/ordr/*"] }],
+              "match": [
+                {
+                  "path": [
+                    "/ordr/*"
+                  ]
+                }
+              ],
               "terminal": true
             }
           ]
@@ -312,12 +490,23 @@
   },
   "logging": {
     "logs": {
-      "default": { "exclude": ["http.log.access.log0"], "level": "DEBUG" },
+      "default": {
+        "exclude": [
+          "http.log.access.log0"
+        ],
+        "level": "DEBUG"
+      },
       "log0": {
-        "encoder": { "format": "console" },
-        "include": ["http.log.access.log0"],
+        "encoder": {
+          "format": "console"
+        },
+        "include": [
+          "http.log.access.log0"
+        ],
         "level": "DEBUG",
-        "writer": { "output": "stderr" }
+        "writer": {
+          "output": "stderr"
+        }
       }
     }
   }

@@ -1,9 +1,9 @@
 PACKAGE_NAME := github.com/try-veil/veil
 GOLANG_CROSS_VERSION ?= v1.21.5
 
-# export GOPATH := C:/Users/kambo/go
-# export GOMODCACHE := $(GOPATH)/pkg/mod
-# export GOCACHE=C:/Users/kambo/.cache/go-build
+export GOPATH := C:/Users/kambo/go
+export GOMODCACHE := $(GOPATH)/pkg/mod
+export GOCACHE=C:/Users/kambo/.cache/go-build
 
 print-env:
 	echo "GOPATH = ${GOPATH}"
