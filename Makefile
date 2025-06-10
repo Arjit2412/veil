@@ -1,13 +1,6 @@
 PACKAGE_NAME := github.com/try-veil/veil
 GOLANG_CROSS_VERSION ?= v1.21.5
 
-export GOPATH := C:/Users/kambo/go
-export GOMODCACHE := $(GOPATH)/pkg/mod
-export GOCACHE=C:/Users/kambo/.cache/go-build
-
-print-env:
-	echo "GOPATH = ${GOPATH}"
-	echo "GOMODCACHE = ${GOMODCACHE}"
 
 
 .PHONY: build clean test setup release-dry-run release
@@ -19,7 +12,7 @@ setup:
 build:
 	make clean
 	make setup
-	CGO_ENABLED=1 xcaddy build --with github.com/try-veil/veil/packages/caddy=./packages/caddy --output veil.exe
+	CGO_ENABLED=1 xcaddy build --with github.com/try-veil/veil/packages/caddy=./packages/caddy --output veil
 
 # Clean build artifacts
 clean:
