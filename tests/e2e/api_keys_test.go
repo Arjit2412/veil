@@ -107,7 +107,7 @@ func TestAPIKeyManagement(t *testing.T) {
 		t.Run("API Access with Different Keys", func(t *testing.T) {
 			// Test with initial key
 			t.Run("Initial Key Access", func(t *testing.T) {
-				req, _ := http.NewRequest("GET", "http://localhost:2020/weather/current", nil)
+				req, _ := http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
 				req.Header.Set("X-Subscription-Key", "initial-key")
 				req.Header.Set("X-Test-Header", "test")
 
@@ -119,7 +119,7 @@ func TestAPIKeyManagement(t *testing.T) {
 
 			// Test with new key 1
 			t.Run("New Key 1 Access", func(t *testing.T) {
-				req, _ := http.NewRequest("GET", "http://localhost:2020/weather/current", nil)
+				req, _ := http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
 				req.Header.Set("X-Subscription-Key", "new-key-1")
 				req.Header.Set("X-Test-Header", "test")
 
@@ -131,7 +131,7 @@ func TestAPIKeyManagement(t *testing.T) {
 
 			// Test with invalid key
 			t.Run("Invalid Key Access", func(t *testing.T) {
-				req, _ := http.NewRequest("GET", "http://localhost:2020/weather/current", nil)
+				req, _ := http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
 				req.Header.Set("X-Subscription-Key", "invalid-key")
 				req.Header.Set("X-Test-Header", "test")
 
@@ -164,7 +164,7 @@ func TestAPIKeyManagement(t *testing.T) {
 			resp.Body.Close()
 
 			// Try to access API with deactivated key
-			req, _ = http.NewRequest("GET", "http://localhost:2020/weather/current", nil)
+			req, _ = http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
 			req.Header.Set("X-Subscription-Key", "new-key-1")
 			req.Header.Set("X-Test-Header", "test")
 
@@ -174,7 +174,7 @@ func TestAPIKeyManagement(t *testing.T) {
 			resp.Body.Close()
 
 			// Verify other keys still work
-			req, _ = http.NewRequest("GET", "http://localhost:2020/weather/current", nil)
+			req, _ = http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
 			req.Header.Set("X-Subscription-Key", "new-key-2")
 			req.Header.Set("X-Test-Header", "test")
 
@@ -267,15 +267,15 @@ func TestAPIKeyManagement(t *testing.T) {
 	t.Run("Add API Keys", func(t *testing.T) {
 		// First onboard an API
 		onboardRequest := APIOnboardRequest{
-			Path:                 "/weather/*",
+			Path:                 "/order/*",
 			Upstream:             "http://localhost:8080",
-			RequiredSubscription: "weather-subscription",
+			RequiredSubscription: "order-subscription",
 			Methods:              []string{"GET"},
 			RequiredHeaders:      []string{"X-Test-Header"},
 			APIKeys: []APIKey{
 				{
-					Key:  "weather-key-1",
-					Name: "Weather Key 1",
+					Key:  "order-key-1",
+					Name: "order Key 1",
 				},
 			},
 		}
@@ -294,11 +294,11 @@ func TestAPIKeyManagement(t *testing.T) {
 
 		// Add new API keys
 		addKeysRequest := APIKeyRequest{
-			Path: "/weather/*",
+			Path: "/order/*",
 			APIKeys: []APIKey{
 				{
-					Key:  "weather-key-2",
-					Name: "Weather Key 2",
+					Key:  "order-key-2",
+					Name: "order Key 2",
 				},
 			},
 		}
@@ -318,10 +318,10 @@ func TestAPIKeyManagement(t *testing.T) {
 		// Test access with new API key using port 2021
 		t.Run("Test API Access with New Key", func(t *testing.T) {
 			client := &http.Client{}
-			req, err := http.NewRequest("GET", "http://localhost:2021/weather/current", nil)
+			req, err := http.NewRequest("GET", "http://localhost:2021/order/current", nil)
 			assert.NoError(t, err, "Failed to create request")
 
-			req.Header.Set("X-Subscription-Key", "weather-key-2")
+			req.Header.Set("X-Subscription-Key", "order-key-2")
 			req.Header.Set("X-Test-Header", "test")
 
 			resp, err := client.Do(req)

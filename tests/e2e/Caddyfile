@@ -20,3 +20,7 @@
         veil_handler ./veil.db X-Subscription-Key
     }
 }
+
+:2021 {
+    reverse_proxy localhost:2020
+}

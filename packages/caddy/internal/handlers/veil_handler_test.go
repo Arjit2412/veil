@@ -116,6 +116,10 @@ func TestVeilHandler_ServeHTTP(t *testing.T) {
 					"srv0": {
 						"listen": [":2020"],
 						"routes": []
+					},
+					"srv1": {
+						"listen": [":2021"],
+						"routes": []
 					}
 				}
 			}`),
@@ -208,19 +212,19 @@ func TestVeilHandler_ServeHTTP(t *testing.T) {
 			},
 			isManagement: false,
 		},
-		// {
-		// 	name:   "Management API Request",
-		// 	path:   "/veil/api/onboard",
-		// 	method: http.MethodPost,
-		// 	headers: map[string]string{
-		// 		"Content-Type": "application/json",
-		// 	},
-		// 	expectedCode: http.StatusCreated,
-		// 	nextHandler: func(w http.ResponseWriter, r *http.Request) {
-		// 		w.WriteHeader(http.StatusOK)
-		// 	},
-		// 	isManagement: true,
-		// },
+		{
+			name:   "Management API Request",
+			path:   "/veil/api/onboard",
+			method: http.MethodPost,
+			headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			expectedCode: http.StatusCreated,
+			nextHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			},
+			isManagement: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -284,6 +288,10 @@ func TestVeilHandler_handleOnboard(t *testing.T) {
 	}
 	err := handler.Provision(ctx)
 	assert.NoError(t, err)
+	assert.NotNil(t, handler.store)
+	// Ensure the store is initialized
+	assert.NotNil(t, handler.Config)
+	assert.NotNil(t, handler.logger)
 
 	// Mock the admin API call for config updates
 	mockConfig := &caddy.Config{
@@ -292,6 +300,10 @@ func TestVeilHandler_handleOnboard(t *testing.T) {
 				"servers": {
 					"srv0": {
 						"listen": [":2020"],
+						"routes": []
+					},
+					"srv1": {
+						"listen": [":2021"],
 						"routes": []
 					}
 				}
@@ -310,23 +322,23 @@ func TestVeilHandler_handleOnboard(t *testing.T) {
 		request      models.APIOnboardRequest
 		expectedCode int
 	}{
-		// {
-		// 	name: "Valid Onboard Request",
-		// 	request: models.APIOnboardRequest{
-		// 		Path:                 "/test/*",
-		// 		Upstream:             "http://localhost:8082",
-		// 		RequiredSubscription: "test-subscription",
-		// 		Methods:              []string{"GET"},
-		// 		RequiredHeaders:      []string{"X-Test-Header"},
-		// 		APIKeys: []models.APIKey{
-		// 			{
-		// 				Key:  "test-key",
-		// 				Name: "Test Key",
-		// 			},
-		// 		},
-		// 	},
-		// 	expectedCode: http.StatusCreated,
-		// },
+		{
+			name: "Valid Onboard Request",
+			request: models.APIOnboardRequest{
+				Path:                 "/test/*",
+				Upstream:             "http://localhost:8082",
+				RequiredSubscription: "test-subscription",
+				Methods:              []string{"GET"},
+				RequiredHeaders:      []string{"X-Test-Header"},
+				APIKeys: []models.APIKey{
+					{
+						Key:  "test-key",
+						Name: "Test Key",
+					},
+				},
+			},
+			expectedCode: http.StatusCreated,
+		},
 		{
 			name: "Invalid Request - Missing Path",
 			request: models.APIOnboardRequest{
