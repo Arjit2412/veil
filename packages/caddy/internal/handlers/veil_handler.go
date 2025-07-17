@@ -16,6 +16,7 @@ import (
 	"github.com/try-veil/veil/packages/caddy/internal/dto"
 	"github.com/try-veil/veil/packages/caddy/internal/models"
 	"github.com/try-veil/veil/packages/caddy/internal/store"
+	"github.com/try-veil/veil/packages/logging"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -23,14 +24,15 @@ import (
 
 // VeilHandler implements an HTTP handler that validates API subscriptions
 type VeilHandler struct {
-	DBPath          string             `json:"db_path,omitempty"`
-	SubscriptionKey string             `json:"subscription_key,omitempty"`
-	Config          *config.VeilConfig `json:"-"`
-	store           *store.APIStore
-	logger          *zap.Logger
-	ctx             caddy.Context
-	apisLoaded      bool
-	adminAPIReady   bool
+	DBPath            string                     `json:"db_path,omitempty"`
+	SubscriptionKey   string                     `json:"subscription_key,omitempty"`
+	Config            *config.VeilConfig         `json:"-"`
+	store             *store.APIStore
+	logger            *zap.Logger
+	loggingMiddleware *logging.LoggingMiddleware
+	ctx               caddy.Context
+	apisLoaded        bool
+	adminAPIReady     bool
 }
 
 // CaddyModule returns the Caddy module information.
@@ -66,8 +68,38 @@ func (h *VeilHandler) Start() error {
 
 // Provision implements caddy.Provisioner.
 func (h *VeilHandler) Provision(ctx caddy.Context) error {
-	h.logger = ctx.Logger().Named("veil_handler")
 	h.ctx = ctx
+
+	// Get Loki URL from environment or use default
+	lokiURL := os.Getenv("LOKI_URL")
+	if lokiURL == "" {
+		lokiURL = "http://localhost:3100"
+	}
+
+	// Create labels for this handler instance
+	labels := map[string]string{
+		"service": "veil-gateway",
+		"handler": "veil_handler",
+		"db_path": h.DBPath,
+	}
+
+	// Create Loki logger
+	lokiLogger, err := logging.CreateLokiLogger(lokiURL, labels)
+	if err != nil {
+		// Fall back to default Caddy logger if Loki is not available
+		h.logger = ctx.Logger().Named("veil_handler")
+		h.logger.Warn("Failed to create Loki logger, falling back to console",
+			zap.Error(err),
+			zap.String("loki_url", lokiURL))
+	} else {
+		h.logger = lokiLogger
+		h.logger.Info("Loki logger initialized successfully",
+			zap.String("loki_url", lokiURL),
+			zap.Any("labels", labels))
+	}
+
+	// Create logging middleware
+	h.loggingMiddleware = logging.NewLoggingMiddleware(h.logger)
 
 	// Initialize config
 	h.Config = &config.VeilConfig{
@@ -86,7 +118,8 @@ func (h *VeilHandler) Provision(ctx caddy.Context) error {
 	}
 
 	h.logger.Info("VeilHandler provisioned successfully",
-		zap.String("db_path", h.DBPath))
+		zap.String("db_path", h.DBPath),
+		zap.String("subscription_key", h.SubscriptionKey))
 
 	return nil
 }
@@ -558,12 +591,31 @@ func (h *VeilHandler) saveCaddyfile(configMap map[string]interface{}) error {
 
 // ServeHTTP implements caddyhttp.MiddlewareHandler.
 func (h *VeilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+	start := time.Now()
+
+	// Log the incoming request
+	h.loggingMiddleware.LogRequest(r,
+		zap.String("handler", "veil_handler"),
+		zap.String("subscription_key", h.SubscriptionKey))
+
 	// Handle management API without validation
 	if strings.HasPrefix(r.URL.Path, "/veil/api/") {
-		h.logger.Debug("handling management API request",
+		h.logger.Info("handling management API request",
 			zap.String("path", r.URL.Path),
-			zap.String("method", r.Method))
-		return h.handleManagementAPI(w, r)
+			zap.String("method", r.Method),
+			zap.String("remote_addr", r.RemoteAddr))
+		
+		err := h.handleManagementAPI(w, r)
+		
+		// Log the response
+		status := http.StatusOK
+		if err != nil {
+			status = http.StatusInternalServerError
+		}
+		h.loggingMiddleware.LogResponse(r, status, time.Since(start),
+			zap.String("operation", "management_api"))
+		
+		return err
 	}
 
 	// Extract API key from header
@@ -572,12 +624,16 @@ func (h *VeilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, next cad
 	// Validate API key
 	api, err := h.validateAPIKey(r.URL.Path, apiKey)
 	if err != nil {
-		h.logger.Debug("API key validation failed",
-			zap.String("path", r.URL.Path),
-			zap.Error(err))
+		h.loggingMiddleware.LogAPIValidation(r, false, err.Error(),
+			zap.String("api_key_header", h.SubscriptionKey))
+		h.loggingMiddleware.LogResponse(r, http.StatusUnauthorized, time.Since(start))
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return nil
 	}
+
+	// Log successful API validation
+	h.loggingMiddleware.LogAPIKeyValidation(r, api.Path, true, api.RequiredSubscription,
+		zap.String("upstream", api.Upstream))
 
 	// Check if method is allowed
 	methodAllowed := false
@@ -589,9 +645,9 @@ func (h *VeilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, next cad
 	}
 
 	if !methodAllowed {
-		h.logger.Debug("method not allowed",
-			zap.String("path", r.URL.Path),
-			zap.String("method", r.Method))
+		h.loggingMiddleware.LogAPIValidation(r, false, "method not allowed",
+			zap.String("allowed_methods", fmt.Sprintf("%v", api.Methods)))
+		h.loggingMiddleware.LogResponse(r, http.StatusMethodNotAllowed, time.Since(start))
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return nil
 	}
@@ -599,19 +655,38 @@ func (h *VeilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, next cad
 	// Check required headers
 	for _, header := range api.RequiredHeaders {
 		if r.Header.Get(header) == "" {
-			h.logger.Debug("missing required header",
-				zap.String("path", r.URL.Path),
-				zap.String("header", header))
+			h.loggingMiddleware.LogAPIValidation(r, false, fmt.Sprintf("missing required header: %s", header),
+				zap.String("required_headers", fmt.Sprintf("%v", api.RequiredHeaders)))
+			h.loggingMiddleware.LogResponse(r, http.StatusBadRequest, time.Since(start))
 			http.Error(w, fmt.Sprintf("Missing required header: %s", header), http.StatusBadRequest)
 			return nil
 		}
 	}
 
-	h.logger.Debug("request authorized",
+	h.logger.Info("request authorized, proxying to upstream",
 		zap.String("path", r.URL.Path),
-		zap.String("method", r.Method))
+		zap.String("method", r.Method),
+		zap.String("upstream", api.Upstream),
+		zap.String("subscription", api.RequiredSubscription))
 
-	return next.ServeHTTP(w, r)
+	// Call next handler (reverse proxy)
+	err = next.ServeHTTP(w, r)
+	
+	// Log completion
+	status := http.StatusOK
+	if err != nil {
+		status = http.StatusInternalServerError
+		h.loggingMiddleware.LogError(r, err,
+			zap.String("upstream", api.Upstream),
+			zap.String("subscription", api.RequiredSubscription))
+	}
+
+	duration := time.Since(start)
+	h.loggingMiddleware.LogResponse(r, status, duration,
+		zap.String("upstream", api.Upstream),
+		zap.String("subscription", api.RequiredSubscription))
+
+	return err
 }
 
 // handleManagementAPI handles the management API endpoints
