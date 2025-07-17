@@ -6,6 +6,7 @@ require (
 	github.com/bytedance/mockey v1.2.14
 	github.com/caddyserver/caddy/v2 v2.7.6
 	github.com/stretchr/testify v1.8.4
+	github.com/try-veil/veil/packages/logging v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.25.0
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.7
@@ -96,7 +97,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/tailscale/tscert v0.0.0-20230806124524-28a91b69a046 // indirect
-	github.com/try-veil/veil/packages/logging v0.0.0-00010101000000-000000000000 // indirect
 	github.com/urfave/cli v1.22.14 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
